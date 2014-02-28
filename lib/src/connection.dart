@@ -9,12 +9,13 @@ class Connection {
   StringSink _socket;
   String _nick;
   String _server;
+  String _pass;
   String _realName;
   int _port;
   List<Handler> _handlers;
-  
-  Connection._(this._server, this._port, this._nick, this._realName, this._handlers);
-  
+
+  Connection._(this._server, this._port, this._pass, this._nick, this._realName, this._handlers);
+
   /**
    * Returns the current nickname
    */
@@ -28,28 +29,28 @@ class Connection {
     ioLog.fine(">>${message}");
     _socket.writeln(message);
   }
-  
+
   /**
-   * Sends a private [message] to the [nickOrChannel]. 
+   * Sends a private [message] to the [nickOrChannel].
    */
   void sendMessage(String nickOrChannel, String message) {
     write("${Commands.PRIVMSG} ${nickOrChannel} :${message}");
   }
-  
+
   /**
    * Sends a [notice] to the [user].
    */
   void sendNotice(String user, String notice) {
     write("${Commands.NOTICE} ${user} :${notice}");
   }
-  
+
   /**
    * Joins a [channel].
    */
   void join(String channel) {
     write("${Commands.JOIN} ${channel}");
   }
-  
+
   /**
    * Sets the current [nick].
    */
@@ -57,7 +58,7 @@ class Connection {
     _nick = nick;
     write("${Commands.NICK} ${nick}");
   }
-  
+
   /**
    * Call this to cause the [onConnection] methods of the [handlers] get
    * called. This is usually not necessary, as the IrcClient or
@@ -70,14 +71,14 @@ class Connection {
       }
     }
   }
-  
+
   newIrcTransformer() {
     return new StreamTransformer.fromHandlers(handleData: (String event, EventSink<Command> sink) {
       var command = new Command(event);
       sink.add(command);
     });
   }
-  
+
   /**
    * Attemps to connect to the server that this connection handles.
    */
@@ -88,10 +89,14 @@ class Connection {
           .transform(new LineSplitter())
           .transform(newIrcTransformer());
       _socket = socket;
-      
+
+      if(_pass != null){
+        write("${Commands.PASS} ${_pass}");
+      }
+
       setNick(_nick);
       write("${Commands.USER} ${_nick} 0 * :${_realName}");
-      
+
       stream.listen((cmd) {
         ioLog.fine("<<${cmd.line}");
         var handled = false;
@@ -125,15 +130,15 @@ class Connection {
           }
         }
       },
-      onError: _onError, 
+      onError: _onError,
       onDone: _onDone);
     });
   }
-  
+
   _onError(error) {
     // TODO: what?
   }
-  
+
   _onDone() {
     _socket = null;
     for (var handler in _handlers) {

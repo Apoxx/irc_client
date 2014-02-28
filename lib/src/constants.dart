@@ -36,5 +36,6 @@ class Commands {
   static const PING = "PING";
   static const PONG = "PONG";
   static const JOIN = "JOIN";
+  static const PASS = "PASS";
 }
 

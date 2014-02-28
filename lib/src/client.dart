@@ -3,11 +3,11 @@ part of irc_client;
 /**
  * A very simple IRC client, which connects to an IRC server and then
  * calls methods on the supplied [handlers] when commands are received.
- * 
+ *
  * An example IRC bot:
- * 
+ *
  *     import 'packages:irc_client/irc_client.dart';
- *     
+ *
  *     class BotHandler extends Handler {
  *       bool onChannelMessage(String channel, String message, Irc irc) {
  *         if (message.toLowerCase().contains("hello")) {
@@ -15,20 +15,20 @@ part of irc_client;
  *         }
  *       }
  *     }
- *     
+ *
  *     main() {
  *       var bot = new IrcClient("bottymcbot");
  *       bot.handlers.add(new BotHandler());
  *       bot.run("irc.freenode.net");
  *     }
- *     
+ *
  */
 class IrcClient {
   String nick;
   String realName;
   List<Handler> _handlers;
   Logger ioLog = new Logger("io");
-  
+
   /**
    * Create an IrcClient which will connect with the given [nick].
    */
@@ -36,19 +36,19 @@ class IrcClient {
     _handlers = new List<Handler>();
     realName = "Robbe";
   }
-  
+
   /**
    * Methods on [handlers] are called when commands are received from
-   * the server. 
+   * the server.
    */
   List<Handler> get handlers => _handlers;
-  
+
   /**
    * Connects to the [server] on the given [port], and returns the
    * [Connection].
    */
-  Connection connect(String server, [int port = 6667]) {
-    var cnx = new Connection._(server, port, nick, realName, _handlers);
+  Connection connect(String server, [int port = 6667, String pass = null]) {
+    var cnx = new Connection._(server, port, pass, nick, realName, _handlers);
     cnx.connect();
     return cnx;
   }
@@ -69,8 +69,8 @@ bool isChannel(String possibleChannel) {
 
 /**
  * Converts a nick or channel name to lower case according to
- * IRC's rules of equality, where these characters {}|^ are 
- * considered to be the lower case versions of []\~ 
+ * IRC's rules of equality, where these characters {}|^ are
+ * considered to be the lower case versions of []\~
  */
 String nameToLowerCase(String name) {
   return name
@@ -85,7 +85,7 @@ String nameToLowerCase(String name) {
  * Returns [true] if [nameOne] and [nameTwo] are equal, according to
  * IRC's rules of equality, where everything is converted to lower
  * case, and these characters {}|^ are considered to be the lower case
- * versions of []\~ 
+ * versions of []\~
  */
 bool namesAreEqual(String nameOne, String nameTwo) {
   return nameToLowerCase(nameOne) == nameToLowerCase(nameTwo);
@@ -93,7 +93,7 @@ bool namesAreEqual(String nameOne, String nameTwo) {
 
 /**
  * Use this in a message for it to go bold in most IRC clients.
- * 
+ *
  * Example:
  *     irc.sendNotice(user, "This is an ${BOLD}example${BOLD} message");
  */
